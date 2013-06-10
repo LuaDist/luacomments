@@ -64,5 +64,85 @@ function Parse(text,parser,extended)
 	return result,errno
 end
 
+-- @author Michal Juranyi
+function findDocstring(subtree)
+	if type(subtree.data) == "table" then
+		for _,v in ipairs(subtree.data) do
+			if type(v.data) == "table" and #v.data > 0 then
+				if v.key == "Stat" then
+					return false
+				end
+				local res = findDocstring(v)
+				if res ~= nil then
+					return res
+				end 
+			else
+				if v.key == "COMMENT" and v.parsed.style == "literate" and v.parsed.type == "lp" then
+					return v.parsed.text
+				end
+			end
+		end
+	end
+end
 
+-- @author Michal Juranyi
+local function hasBlockComment(subtree)
+	for _,v in ipairs(subtree.data) do
+		if v.key == "COMMENT" and v.parsed.style == "custom" and (v.parsed.type == "startblock" or v.parsed.type == "endblock") then
+			return v.parsed.type, v
+		end
+	end
 
+	return nil
+end
+
+-- @author Michal Juranyi
+local function markBlockChildren(ast)
+	local res, node, tag
+
+	if type(ast.data) == "table" then
+		for _,v in ipairs(ast.data) do
+			if type(v.data) == "table" and v.key ~= "IGNORED" then
+				if tag == true then
+					v.comment = node
+				end
+				markBlockChildren(v)
+			elseif v.key == "IGNORED" then
+				local res_tmp, node_tmp = hasBlockComment(v)
+				if res_tmp == "startblock" then
+					res = res_tmp
+					node = node_tmp
+					tag = true
+				end
+				if res == "endblock" then
+					tag = false
+				end
+			end
+		end
+	end
+
+	return ast
+end
+
+-- @author Michal Juranyi
+local function TagAST(ast)
+	if type(ast.data) == "table" and #ast.data > 0 then
+		for _,v in ipairs(ast.data) do
+			TagAST(v)
+		end
+	else
+		if ast.key == "COMMENT" then
+			ast.parsed = Parse(ast.str)
+		end
+	end
+
+	return ast
+end
+
+-- @author Michal Juranyi
+function extendAST(ast)
+	local extended_ast
+	extended_ast = TagAST(ast)
+	extended_ast = markBlockChildren(extended_ast)
+	return extended_ast
+end
