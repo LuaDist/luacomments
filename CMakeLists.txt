@@ -9,7 +9,7 @@ cmake_minimum_required ( VERSION 2.6 )
 include ( dist.cmake )
 
 # Install all files and documentation
+install_lua_executable ( lua-addCommentes src/lua-addComments.lua )
 install ( DIRECTORY src/comments DESTINATION ${INSTALL_LMOD} )
-#install_data ( README COPYRIGHT)
-#install_doc ( doc/ )
-install_test( tests/)
+install_data ( README.md )
+install_test ( tests/ )

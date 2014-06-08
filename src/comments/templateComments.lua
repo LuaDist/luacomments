@@ -32,7 +32,7 @@ function processFile(file, style, func)
 	f = io.input(file)
 	text = f:read("*a")
 	f:close()
-	
+
 	ast = m.processText(text)
 	new_ast = ast
 	if style == nil then
@@ -53,7 +53,7 @@ function processFile(file, style, func)
 
 end
 
--- The main function for handle comment adding
+--- The main function for handle comment adding
 -- @param path file or directory path
 -- @param style style of function comment
 -- @param func boolean, if true, function comments are added, else docstring comments to logic constructions
@@ -82,13 +82,13 @@ function addComments(path, style, func)
 end
 
 
--- Function for finding and adding function comments
+--- Function for finding and adding function comments
 -- @param ast ast tree of source code
 -- @param style comment style to add
 function functionComments(ast,style)
 
 	if ast.tag == "GlobalFunction" or ast.tag == "LocalFunction" or ast.tag == "Function" or ast.tag == "LocalAssign" then
-				
+
 		if ast.tag == "GlobalFunction" or ast.tag == "LocalFunction" or ast.tag == "Function" then
 
 			if text_tag.tag == "Stat" then
@@ -137,15 +137,15 @@ function functionComments(ast,style)
 	if type(ast.data) == "table" then
 
 		for k,v in pairs(ast.data) do
-			
+
 			functionComments(v,style)
-			
+
 		end
 
 	end
 end
 
--- This function creates template comment for function
+--- This function creates template comment for function
 -- @param ast ast tree of function
 -- @style comment style to add
 function createStyleComment(ast,style)
@@ -167,7 +167,7 @@ function createStyleComment(ast,style)
 			else
 				local ret = findReturnValue(ast)
 				return_found = true
-				if ret == nil then 
+				if ret == nil then
 					ret = ""
 					return_found = false
 				end
@@ -191,7 +191,7 @@ function createStyleComment(ast,style)
 		for k,v in pairs(ast.data) do
 
 			createStyleComment(v,style)
-			
+
 		end
 
 	end
@@ -202,7 +202,7 @@ function createStyleComment(ast,style)
 	end
 end
 
--- This function finds return statement in ast tree of function body
+--- This function finds return statement in ast tree of function body
 -- @param ast ast tree of function body
 -- @return ret name of return value
 function findReturnValue(ast)
@@ -211,15 +211,15 @@ function findReturnValue(ast)
 			return ast.text
 		end
 		for k,v in pairs(ast.data) do
-			
+
 			ret = findReturnValue(v)
-			
+
 		end
 	return ret
 end
 
 
--- This function does string from ast tree
+--- This function does string from ast tree
 -- @param ast ast tree of source code
 function astToString(ast)
 
@@ -240,14 +240,14 @@ function astToString(ast)
 end
 
 
--- This function finds programming constructions (if, for, while) from given ast tree
+--- This function finds programming constructions (if, for, while) from given ast tree
 -- @param ast ast tree of source code
 function findConstructions(ast)
 
 	if ast.tag == "If" then
 		local info = {}
 		local comm = mu.getComment(ast)
-		
+
 		if comm == nil then
 			info.com = nil
 		elseif (string.match(comm,"--_")) == "--_" then
@@ -297,16 +297,16 @@ function findConstructions(ast)
 	if type(ast.data) == "table" then
 
 		for k,v in pairs(ast.data) do
-			
+
 			findConstructions(v)
-			
+
 		end
 
 	end
 end
 
 
--- This function adds template comments to function body
+--- This function adds template comments to function body
 function docstringComments()
 	local shift = 0
 
