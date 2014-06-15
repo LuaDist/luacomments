@@ -12,7 +12,7 @@ Styles:
 - custom
 - ldoc
 
-Possible alias definitions(for luadoc style yet) of standard tags trought the submodule 'aliases'.
+Possible alias definitions (for luadoc style yet) of standard tags trought the submodule 'aliases'.
 
 
 Dependencies:

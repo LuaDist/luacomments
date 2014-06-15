@@ -6,7 +6,7 @@ version = "0.2"
 desc = "LuaComments is a Lua comment parser"
 author = "Peter Kósa, Peter Kapec"
 license = "MIT"
-url = "TODO"
+url = ""
 maintainer = "Peter Kapec"
 
 depends = {

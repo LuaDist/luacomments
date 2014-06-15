@@ -25,7 +25,7 @@ module ('comments.templateComments')
 -- @param style if function comments are chosen, this is style of them - possible just luadoc, explua styles yet
 -- @param func boolean, if true, function comments are added, else docstring comments to logic constructions
 function processFile(file, style, func)
-	print("Processing: ",file)
+	-- print("Processing: ",file)
 	local f, text
 	local ast
 
