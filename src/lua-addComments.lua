@@ -14,14 +14,12 @@ print ("Usage: "..arg[0]..[[
 Add function comments or docstring comments to given file or directory of files. 
 Available options are:
   -p path                      	input directory or file path
-  -f 							add function comments
-  -d  							add docstring comments
-  -s style                     	style of comments you want to add 
-  				(explua, luadoc)
-  -o 							output directory (optional)
+  -f 				add function comments
+  -d  				add docstring comments
+  -s style                     	style of comments you want to add (explua, luadoc)
+  -o path			output directory (optional)
   -h, --help                   	print this help and exit]])
 end
-
 -------------------------------------------------------------------------------
 -- Process options.
 -- @class table
