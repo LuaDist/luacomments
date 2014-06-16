@@ -24,15 +24,17 @@ module ('comments.templateComments')
 -- @param file path to .lua file to comment
 -- @param style if function comments are chosen, this is style of them - possible just luadoc, explua styles yet
 -- @param func boolean, if true, function comments are added, else docstring comments to logic constructions
-function processFile(file, style, func)
-	-- print("Processing: ",file)
+-- @param output directory to save lua file with added comments
+function processFile(file, style, func, output)
+	print("Processing: ",file)
+	print(output)
 	local f, text
 	local ast
 
 	f = io.input(file)
 	text = f:read("*a")
 	f:close()
-
+	
 	ast = m.processText(text)
 	new_ast = ast
 	if style == nil then
@@ -46,23 +48,33 @@ function processFile(file, style, func)
 		astToString(ast)
 		docstringComments()
 	end
-	local new = io.open(file,"w")
+	
+	local new = io.open(output,"w")
 	new:write(new_text)
 	new:close()
 	new_text = ""
-
+	stat_table = {}
+	return_found = false
+	text_tag.tag = ""
+	text_tag.text = ""
 end
 
---- The main function for handle comment adding
+-- The main function for handle comment adding
 -- @param path file or directory path
 -- @param style style of function comment
 -- @param func boolean, if true, function comments are added, else docstring comments to logic constructions
-function addComments(path, style, func)
-
+-- @param output directory to save lua file with added comments
+function addComments(path, style, func, output)
+	
 	if (string.find(path, "%.lua") ~= nil) then
-
-	    processFile(path, style, func)
-
+		if (string.find(output, "%.lua") ~= nil) then
+			output = string.sub(output, 0, string.len(output)-4)
+			output = output .. "(1).lua"
+		else
+			name = string.match(path, "%/%a+%.lua")
+			output = output .. name
+		end
+	    processFile(path, style, func, output)
 	else
 	    for file in lfs.dir(path) do
 	        if file ~= "." and file ~= ".." then
@@ -70,10 +82,13 @@ function addComments(path, style, func)
 	            local attr = lfs.attributes (f)
 	            assert (type(attr) == "table")
 	            if attr.mode == "directory" then
-	                addComments(f,style, func)
+	            	output = output .. '/' .. file
+	            	lfs.mkdir(output)
+	                addComments(f,style, func,output)
+	                output = output .. "/.."
 	            else
 	            	if string.find(file, "%.lua") ~= nil then
-	                	processFile(path .. "/" .. file, style, func)
+	                	processFile(path .. "/" .. file, style, func, output .. "/" .. file)
 	            	end
 	            end
 	        end
@@ -82,20 +97,21 @@ function addComments(path, style, func)
 end
 
 
---- Function for finding and adding function comments
+-- Function for finding and adding function comments
 -- @param ast ast tree of source code
 -- @param style comment style to add
 function functionComments(ast,style)
 
 	if ast.tag == "GlobalFunction" or ast.tag == "LocalFunction" or ast.tag == "Function" or ast.tag == "LocalAssign" then
-
+				
 		if ast.tag == "GlobalFunction" or ast.tag == "LocalFunction" or ast.tag == "Function" then
 
 			if text_tag.tag == "Stat" then
 				local comment = mu.getComment(ast)
 				if comment == nil then
-					if style == "explua" then
+					if string.find(style,"explua") then
 						new_text = new_text .. createStyleComment(ast,style) .. text_tag.text
+						
 						comment_style.explua = "---\n--% "
 						return_found = false
 					elseif style == "luadoc" then
@@ -137,15 +153,15 @@ function functionComments(ast,style)
 	if type(ast.data) == "table" then
 
 		for k,v in pairs(ast.data) do
-
+			
 			functionComments(v,style)
-
+			
 		end
 
 	end
 end
 
---- This function creates template comment for function
+-- This function creates template comment for function
 -- @param ast ast tree of function
 -- @style comment style to add
 function createStyleComment(ast,style)
@@ -167,7 +183,7 @@ function createStyleComment(ast,style)
 			else
 				local ret = findReturnValue(ast)
 				return_found = true
-				if ret == nil then
+				if ret == nil then 
 					ret = ""
 					return_found = false
 				end
@@ -181,7 +197,7 @@ function createStyleComment(ast,style)
 
 	elseif ast.tag == "FuncName" then
 		if style == "luadoc" then
-			comment_style.luadoc = comment_style.luadoc .. "The " .. ast.text .. " function\n"
+			comment_style.luadoc =  "-- The " .. ast.text .. " function\n" .. comment_style.luadoc .. "\n"
 		elseif style == "explua" then
 			comment_style.explua = comment_style.explua .. "The " .. ast.text .. " function\n---\n"
 		end
@@ -191,7 +207,7 @@ function createStyleComment(ast,style)
 		for k,v in pairs(ast.data) do
 
 			createStyleComment(v,style)
-
+			
 		end
 
 	end
@@ -202,7 +218,7 @@ function createStyleComment(ast,style)
 	end
 end
 
---- This function finds return statement in ast tree of function body
+-- This function finds return statement in ast tree of function body
 -- @param ast ast tree of function body
 -- @return ret name of return value
 function findReturnValue(ast)
@@ -211,15 +227,15 @@ function findReturnValue(ast)
 			return ast.text
 		end
 		for k,v in pairs(ast.data) do
-
+			
 			ret = findReturnValue(v)
-
+			
 		end
 	return ret
 end
 
 
---- This function does string from ast tree
+-- This function does string from ast tree
 -- @param ast ast tree of source code
 function astToString(ast)
 
@@ -240,14 +256,14 @@ function astToString(ast)
 end
 
 
---- This function finds programming constructions (if, for, while) from given ast tree
+-- This function finds programming constructions (if, for, while) from given ast tree
 -- @param ast ast tree of source code
 function findConstructions(ast)
 
 	if ast.tag == "If" then
 		local info = {}
 		local comm = mu.getComment(ast)
-
+		
 		if comm == nil then
 			info.com = nil
 		elseif (string.match(comm,"--_")) == "--_" then
@@ -297,16 +313,16 @@ function findConstructions(ast)
 	if type(ast.data) == "table" then
 
 		for k,v in pairs(ast.data) do
-
+			
 			findConstructions(v)
-
+			
 		end
 
 	end
 end
 
 
---- This function adds template comments to function body
+-- This function adds template comments to function body
 function docstringComments()
 	local shift = 0
 
@@ -315,7 +331,7 @@ function docstringComments()
 			local part1 = string.sub(new_text,0,stat_table[k].pos+shift)
 			local part2 = string.sub(new_text,stat_table[k].pos+shift+1)
 			if stat_table[k].stat ~= "FuncBody" then
-				local space = string.match(part1,"[^\n]+$")
+				local space = string.match(part1,"[^\n]*$")
 				new_text = part1 .. "--_write comment\n" .. space .. part2
 				shift = shift + 17 + string.len(space)
 			elseif stat_table[k].stat == "FuncBody" then
