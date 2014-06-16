@@ -6,6 +6,7 @@ local string = string
 local style = ""
 local func = false
 local path = ""
+local output
 -- Print usage message.
 
 local function print_help ()
@@ -13,10 +14,11 @@ print ("Usage: "..arg[0]..[[
 Add function comments or docstring comments to given file or directory of files. 
 Available options are:
   -p path                      	input directory or file path
-  -f true/false			true if you want to add function comments, 
-  				false if docstring	   
+  -f 							add function comments
+  -d  							add docstring comments
   -s style                     	style of comments you want to add 
   				(explua, luadoc)
+  -o 							output directory (optional)
   -h, --help                   	print this help and exit]])
 end
 
@@ -28,18 +30,15 @@ end
 local OPTIONS = {
 	p = function (arg, i)
 		local dir = arg[i+1]
-
-
 		path = dir
-
 		return 1
 	end,
 	f = function (arg, i)
-		if string.find(arg[i+1],"true") then
-			func = true
-		else
-			func = false
-		end
+		func = true
+		return 1
+	end,
+	d = function (arg, i)
+		func = false
 		return 1
 	end,
 	s = function (arg, i)
@@ -48,9 +47,11 @@ local OPTIONS = {
 		elseif string.find(arg[i+1],"luadoc") then
 			style = "luadoc"
 		end
-		if style == "" then
-			style = "luadoc"
-		end
+		return 1
+	end,
+	o = function (arg, i)
+		local dir2 = arg[i+1]
+		output = dir2
 		return 1
 	end,
 	h = print_help,
@@ -60,12 +61,10 @@ local OPTIONS = {
 -------------------------------------------------------------------------------
 
 local function process_options (arg)
-
+	
 	local i = 1
 	while i < #arg or i == #arg do
-
-		local argi = arg[i]
-
+		local argi = arg[i]		
 		if string.sub (argi, 1, 1) == '-' then
 
 			local opt = string.sub (argi, 2)
@@ -77,10 +76,12 @@ local function process_options (arg)
 			if OPTIONS[opt] then
 				if OPTIONS[opt] (arg, i) then
 					i = i + 1
+				else i = i + 1
 				end
+			else i = i + 1
 			end
+		else i = i + 1
 		end
-		i = i+1
 	end
 end 
 
@@ -98,8 +99,10 @@ function main (arg)
 		style = "luadoc"
 	end
 	if path ~= "" then
-
-		return tc.addComments(path, style, func)
+		if output == nil then
+			output = path
+		end
+		return tc.addComments(path, style, func, output)
 	end
 end
 
