@@ -3,7 +3,7 @@
 local re = require("re")
 
 ---
--- Module for lua comment parsing. 
+-- Module for lua comment parsing.
 --@class module
 --@name comments
 --@author Peter Kosa
@@ -24,8 +24,8 @@ local parsers={
 	[2]=leg,
 	[3]=custom,
 	[4]=explua,
-	[5]=luadoc,
-	[6]=ldoc,
+	[5]=ldoc,
+--	[6]=luadoc, -- broken !!! (crash in lpeg.c)
 
 }
 
@@ -53,7 +53,7 @@ function Parse(text,parser,extended)
 	elseif(parser=="leg")then
 		return leg.parse(text)
 	else
-	
+
 		for k,v in ipairs(parsers) do
 			result,errno = v.parse(text,extended)
 			if(result)then
@@ -75,7 +75,7 @@ function findDocstring(subtree)
 				local res = findDocstring(v)
 				if res ~= nil then
 					return res
-				end 
+				end
 			else
 				if v.key == "COMMENT" and v.parsed.style == "literate" and v.parsed.type == "lp" then
 					return v.parsed.text
