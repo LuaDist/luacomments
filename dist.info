@@ -1,7 +1,7 @@
 --- This dist file is part of LuaDist project
 
 name = "luacomments"
-version = "0.2.1"
+version = "0.2.2"
 
 desc = "LuaComments is a Lua comment parser"
 author = "Peter Kósa, Peter Kapec"

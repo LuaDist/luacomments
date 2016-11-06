@@ -25,8 +25,7 @@ local parsers={
 	[3]=custom,
 	[4]=explua,
 	[5]=ldoc,
---	[6]=luadoc, -- broken !!! (crash in lpeg.c)
-
+	[6]=luadoc,
 }
 
 ---
